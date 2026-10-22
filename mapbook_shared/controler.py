@@ -1,23 +1,50 @@
-def show_users(user_list: list) -> None:
+import folium
+
+def show_users(user_list:list) -> None:
     for user in user_list:
-        print((f"twój znajomy {user["name"]} z miejscowości {user["location"]} opublikował {user["posts"]} postów"))
+        print(f'Twój znajomy {user["name"]} z miejscowości {user["location"]} opublikował {user["posts"]} postów')
 
+def add_user(user_list:list) -> None:
+    user_list.append({'name':input("Podaj imię: "), 'location':input("Podaj miejscowość: "), 'posts':int(input("Podaj liczbę postów: "))})
 
-def add_user(user_list: list) -> None:
-    user_list.append({"name": input("podaj imię: "), "location": input("Podaj miejscowość: "),
-                      "posts": int(input("Podaj liczbę postów: "))})
-
-
-def remove_user(user_list: list) -> None:
+def remove_user(user_list:list) -> None:
     name_of_user_to_remove: str = input("Podaj imię użytkownika do usunięcia: ")
     for user in user_list:
-        if user["name"] == name_of_user_to_remove:
-            user_list.remove({"name": "Emil", "location": "Łomża", "posts": 50})
+        if user['name'] == name_of_user_to_remove:
+            user_list.remove({'name':'Bartosz', 'location':'Wierszczyca', 'posts':50})
 
-def update_user(user_list: list) -> None:
+def update_user(user_list:list) -> None:
     name_of_user_to_update: str = input("Podaj imię użytkownika do edycji: ")
     for user in user_list:
-        if user["name"] == name_of_user_to_update:
-            user["name"] = input("podaj nowe imię użytkownika: ")
-            user["location"] = input("podaj nową lokalizację użytkownika: ")
-            user["posts"] = int(input("Podaj liczbę postów: "))
+        if user['name'] == name_of_user_to_update:
+            user['name'] = input("Podaj nowe imię użytkownika: ")
+            user['location'] = input("Podaj nową lokalizację użytkownika: ")
+            user['post'] = int(input("Podaj nową liczbę postów użytkownika: "))
+
+def get_coordinates(city:str) -> list:
+
+    import requests
+    from bs4 import BeautifulSoup
+
+    URL=f'https://pl.wikipedia.org/wiki/{city}'
+
+    response = requests.get(URL, headers={'User-Agent': 'Mozilla/5.0'})
+    response_html = BeautifulSoup(response.content, 'html.parser')
+
+    latitude = float(response_html.select('.latitude')[1].text.replace(',','.'))
+    longitude = float(response_html.select('.longitude')[1].text.replace(',','.'))
+
+    return [latitude, longitude]
+
+def get_map(user_list:list) -> None:
+    m = folium.Map(location=(50.45, 23.60), zoom_start=5)
+
+    for user in user_list:
+        folium.Marker(
+            location=get_coordinates(user['location']),
+            tooltip="Click me!",
+            popup=f'{user["name"]}, {user["location"]}',
+            icon=folium.Icon(icon="cloud"),
+        ).add_to(m)
+
+    m.save("index.html")
