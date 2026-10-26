@@ -3,6 +3,7 @@ users:list = [
     {"name": "Bartosz K", "location": "Narol", "posts": 6767},
     {"name": "Natalia", "location": "Białystok", "posts": 30},
     {"name": "Mikołaj", "location": "Warszawa", "posts": 1},
+    {"name": "Emil", "location": "Łomża", "posts": 6}
 ]
 #TODO w tym miejscu ma zostac commitami dodany przez zaproszonych uzytkownikow wpis przez kazdego z nich
 
