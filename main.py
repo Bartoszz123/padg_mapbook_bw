@@ -4,19 +4,24 @@ from mapbook_shared.controler import get_coordinates
 
 users: list = []
 
+# podejscie obiektowe
+class User:
+    def __init__(self, name, posty, location):
+        self.name: str = name
+        self.posts: int = posty
+        self.location: str = location
+
+        self.coords: list = get_coordinates(location) #error
+        self.marker = map_widget.set_marker(self.coords[0], self.coords[1])
 
 def add_user():
     name = entry_imie.get()
     location = entry_miejscowosc.get()
     posts = entry_posty.get()
-    x, y = get_coordinates(location)
 
-    users.append({
-        'name': name,
-        'posts': posts,
-        'location': location,
-        'marker': map_widget.set_marker(x, y, text=name), 'x': x, 'y': y,
-    })
+    users.append(
+        User(name, posts, location) #error
+    )
     print("to jest lista", users)
 
     # czysci pola wpisywania
@@ -27,27 +32,26 @@ def add_user():
     entry_imie.focus()
     show_users()
 
-
 def show_users():
     listbox_lista_obiektow.delete(0, END)
 
     for idx, user in enumerate(users):
-        listbox_lista_obiektow.insert(idx, user["name"])
+        listbox_lista_obiektow.insert(idx, user.name)
 
 
 def remove_user():
     i = listbox_lista_obiektow.index(ACTIVE)
     print(i)
-    users[i]['marker'].delete()
+    users[i].marker.delete()
     users.pop(i)
     show_users()
 
 
 def edit_user():
     i = listbox_lista_obiektow.index(ACTIVE)
-    entry_imie.insert(0, users[i]["name"])
-    entry_miejscowosc.insert(0, users[i]["location"])
-    entry_posty.insert(0, users[i]["posts"])
+    entry_imie.insert(0, users[i].name)
+    entry_miejscowosc.insert(0, users[i].location)
+    entry_posty.insert(0, users[i].posts)
 
     button_dodaj_obiekt.config(text="Zapisz zmiany", command=lambda: update_user(i))
 
@@ -57,18 +61,16 @@ def update_user(i):
     new_location = entry_miejscowosc.get()
     new_posts = entry_posty.get()
 
-    users[i]['name'] = new_name
-    users[i]['location'] = new_location
-    users[i]['posts'] = new_posts
+    users[i].name = new_name
+    users[i].location = new_location
+    users[i].posts = new_posts
+    users[i].coords = get_coordinates(new_location)
 
-    x, y = get_coordinates(new_location)
-
-    users[i]["marker"].delete()
-    users[i]["marker"] = map_widget.set_marker(x, y, text=entry_imie.get())
+    users[i].marker.delete()
+    users[i].marker = map_widget.set_marker(users[i].coords[0], users[i].coords[1], text=entry_imie.get())
 
     show_users()
-
-    button_dodaj_obiekt.config(text="Dodaj obiekt", command=lambda: add_user)
+    button_dodaj_obiekt.config(text="Dodaj obiekt", command= add_user)
     entry_imie.delete(0, END)
     entry_miejscowosc.delete(0, END)
     entry_posty.delete(0, END)
@@ -76,18 +78,18 @@ def update_user(i):
     entry_imie.focus()
 
 
-def show_user_details(i):
+def show_user_details():
     i = listbox_lista_obiektow.index(ACTIVE)
-    tmp_user = users[i]["name"]
-    tmp_posts = users[i]["posts"]
-    tmp_location = users[i]["location"]
+    tmp_user = users[i].name
+    tmp_posts = users[i].posts
+    tmp_location = users[i].location
 
     label_imie_szczegoly_obiektu_wartosc.config(text=tmp_user)
     label_posty_szczegoly_obiektu_wartosc.config(text=tmp_posts)
     label_miejscowosc_szczegoly_obiektu_wartosc.config(text=tmp_location)
 
-    map_widget.set_position(users[i]['x'], users[i]['y'])
-    map_widget.set_zoom(16)
+    map_widget.set_position(users[i].coords[0], users[i].coords[1])
+    map_widget.set_zoom(11)
 # TypeError: show_user_details() missing 1 required positional argument: 'i'
 
 root = Tk()
@@ -112,6 +114,7 @@ listbox_lista_obiektow = Listbox(ramka_lista_obiektow)
 button_pokaz_szczegoly = Button(ramka_lista_obiektow, text="Pokaż szczegóły", command=show_user_details)
 button_edytuj_obiekt = Button(ramka_lista_obiektow, text="Edytuj obiekt", command=edit_user)
 button_usun_obiekt = Button(ramka_lista_obiektow, text="Usuń obiekt", command=remove_user)
+# button_dodaj_obiekt = Button(ramka_lista_obiektow, text= 'Dodaj obiekt')
 
 label_lista_obiektow.grid(row=0, column=0, columnspan=3)
 listbox_lista_obiektow.grid(row=1, column=0, columnspan=3)
@@ -125,13 +128,16 @@ label_imie = Label(ramka_formularz, text="Imię: ")
 label_miejscowosc = Label(ramka_formularz, text="Miejscowość: ")
 label_posty = Label(ramka_formularz, text="Postów: ")
 
+button_dodaj_obiekt = Button(ramka_formularz, text= 'Dodaj obiekt', command=add_user)
+
+
 label_formularz.grid(row=0, column=0, columnspan=2)
 label_imie.grid(row=1, column=0, sticky=W)
 label_miejscowosc.grid(row=2, column=0, sticky=W)
 label_posty.grid(row=3, column=0, sticky=W)
 
 # ENTRY_IMIE
-entry_formularz = Entry(ramka_formularz)
+# entry_formularz = Entry(ramka_formularz)
 entry_imie = Entry(ramka_formularz)
 entry_miejscowosc = Entry(ramka_formularz)
 entry_posty = Entry(ramka_formularz)
@@ -140,7 +146,6 @@ entry_imie.grid(row=1, column=1)
 entry_miejscowosc.grid(row=2, column=1)
 entry_posty.grid(row=3, column=1)
 
-button_dodaj_obiekt = Button(ramka_formularz, text="Dodaj obiekt", command=add_user)
 button_dodaj_obiekt.grid(row=4, column=0, columnspan=2)
 
 # RAMKA SZCZEGOLY OBIEKTU
